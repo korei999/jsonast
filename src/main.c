@@ -3,7 +3,7 @@
 int
 main()
 {
-    printf("jsonast version: %.1lf\n\n", JSONAST_VERSION);
+    /*printf("jsonast version: %.1lf\n\n", JSONAST_VERSION);*/
 
     Parser p = {0};
     ParserLoadJson(&p, "test/t3.json");
@@ -19,6 +19,6 @@ main()
     /*}*/
     /*COUT("\n");*/
 
-    ParserPrintNode(&p, p.pHead);
+    ParserPrintJSON(&p);
     ParserClean(&p);
 }

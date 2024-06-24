@@ -4,5 +4,9 @@
     "three": "three",
     "four.five": 4.5,
     "bool0": true,
-    "bool1": false
+    "bool1": false,
+    "obj": {
+        "wow": 404,
+        "wow2": 202
+    }
 }
