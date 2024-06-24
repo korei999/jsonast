@@ -8,7 +8,7 @@
 typedef char* PChar;
 PAIR_GEN_CODE(SliceStr, PChar, size_t);
 
-#define SLSTR_NEW_LIT(S) {{S}, {LENGTH(S) - 1}}
+#define SLSTR_NEW_LIT(S) (SliceStr){{S}, {LENGTH(S) - 1}}
 
 #define __COUT(FMT, ...) fprintg(stdout, FMT, GAS(VA_NARGS(__VA_ARGS__), __VA_ARGS__))
 #define __CERR(FMT, ...) fprintg(stderr, FMT, GAS(VA_NARGS(__VA_ARGS__), __VA_ARGS__))

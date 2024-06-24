@@ -1,5 +1,12 @@
 #include "parse.h"
 
+#define PARSER_ERR(CODE, ...)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        CERR("parser error: ");                                                                                        \
+        CERR(__VA_ARGS__);                                                                                             \
+    } while (0)
+
 static void ParserParseNode(Parser* self, JSONNode* pNode);
 
 static void
@@ -212,13 +219,13 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
         case JSON_OBJECT:
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
-                SliceStr objName0 = pNode->slKey.size == 0 ? (SliceStr)SLSTR_NEW_LIT("") : pNode->slKey;
-                SliceStr objName1 = objName0.size > 0 ? (SliceStr)SLSTR_NEW_LIT(": ") : (SliceStr)SLSTR_NEW_LIT("");
+                SliceStr objName0 = pNode->slKey.size == 0 ? SLSTR_NEW_LIT("") : pNode->slKey;
+                SliceStr objName1 = objName0.size > 0 ? SLSTR_NEW_LIT(": ") : SLSTR_NEW_LIT("");
 
                 COUT("{}{}{\n", objName0, objName1);
                 for (size_t i = 0; i < obj.nodeCount; i++)
                 {
-                    SliceStr slE = (i == obj.nodeCount - 1) ? (SliceStr)SLSTR_NEW_LIT("\n") : (SliceStr)SLSTR_NEW_LIT(",\n");
+                    SliceStr slE = (i == obj.nodeCount - 1) ? SLSTR_NEW_LIT("\n") : SLSTR_NEW_LIT(",\n");
                     ParserPrintNode(self, &obj.aNodes[i], slE);
                 }
                 COUT("}{}", slEnding);
@@ -258,6 +265,6 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
 void
 ParserPrintJSON(Parser* self)
 {
-    ParserPrintNode(self, self->pHead, (SliceStr)SLSTR_NEW_LIT(""));
+    ParserPrintNode(self, self->pHead, SLSTR_NEW_LIT(""));
     COUT("\n");
 }
