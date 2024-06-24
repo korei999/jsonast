@@ -105,7 +105,10 @@ ParserParseObject(Parser* self, JSONNode* pNode)
         i++;
 
         if (self->tCurr.type != TOK_COMMA)
+        {
+            ParserNext(self);
             break;
+        }
     }
 
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
@@ -187,13 +190,14 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
                 SliceStr objName0 = pNode->slKey.size == 0 ? (SliceStr)SLSTR_NEW_LIT("") : pNode->slKey;
                 SliceStr objName1 = objName0.size > 0 ? (SliceStr)SLSTR_NEW_LIT(": ") : (SliceStr)SLSTR_NEW_LIT("");
+
                 COUT("{}{}{\n", objName0, objName1);
                 for (size_t i = 0; i < obj.nodeCount; i++)
                 {
                     SliceStr slE = (i == obj.nodeCount - 1) ? (SliceStr)SLSTR_NEW_LIT("\n") : (SliceStr)SLSTR_NEW_LIT(",\n");
                     ParserPrintNode(self, &obj.aNodes[i], slE);
                 }
-                COUT("}\n");
+                COUT("}{}", slEnding);
             }
             break;
 
@@ -231,4 +235,5 @@ void
 ParserPrintJSON(Parser* self)
 {
     ParserPrintNode(self, self->pHead, (SliceStr)SLSTR_NEW_LIT(""));
+    COUT("\n");
 }
