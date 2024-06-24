@@ -1,8 +1,6 @@
 #include "parse.h"
 #include "adt/array.h"
 
-void reallocNode(JSONNode* pNode, size_t size);
-
 static void
 ParserExpect(Parser* self, enum JSONToken t)
 {
@@ -86,72 +84,14 @@ ParserNext(Parser* self)
     return self->tCurr;
 }
 
-size_t
-growNode(JSONNode* pNode, size_t cap)
-{
-    size_t newCap = cap;
-
-    switch (pNode->tagVal.tag)
-    {
-        default:
-            PARSER_ERR(2, "pushNode\n");
-            break;
-
-        case JSON_OBJECT:
-            {
-                if (pNode->tagVal.val.JSON_OBJECT.nodeCount >= cap)
-                    reallocNode(pNode, newCap *= 2);
-                pNode->tagVal.val.JSON_OBJECT.nodeCount++;
-            }
-            break;
-
-        case JSON_ARRAY:
-            {
-                if (pNode->tagVal.val.JSON_ARRAY.tagValueCount >= cap)
-                    reallocNode(pNode, newCap *= 2);
-                pNode->tagVal.val.JSON_ARRAY.tagValueCount++;
-            }
-            break;
-    }
-
-    return newCap;
-}
-
-void
-reallocNode(JSONNode* pNode, size_t size)
-{
-    switch (pNode->tagVal.tag)
-    {
-        default:
-            PARSER_ERR(2, "reallocNode only for JSON_ARRAY and JSON_OBJECT\n");
-            break;
-
-        case JSON_OBJECT:
-            {
-                struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
-                obj.aNodes = reallocarray(obj.aNodes, size, sizeof(JSONNode));
-            }
-            break;
-
-        case JSON_ARRAY:
-            {
-                struct JSON_ARRAY obj = pNode->tagVal.val.JSON_ARRAY;
-                obj.aTagValues = reallocarray(obj.aTagValues, size, sizeof(JSONTagVal));
-            }
-            break;
-    }
-}
-
 void
 ParserParseObject(Parser* self, JSONNode* pNode)
 {
-    /*reallocNode(pNode, 2);*/
     pNode->tagVal.tag = JSON_OBJECT;
-    pNode->tagVal.val.JSON_OBJECT.aNodes = calloc(10, sizeof(JSONNode));
+    pNode->tagVal.val.JSON_OBJECT.aNodes = calloc(10, sizeof(JSONNode)); /* TODO: realloc */
     pNode->tagVal.val.JSON_OBJECT.nodeCount = 0;
-    size_t cap = 2;
+    size_t cap = 10;
     size_t i = 0;
-
 
     for (Token t = self->tCurr; t.type != TOK_RBRACE; t = ParserNext(self))
     {
