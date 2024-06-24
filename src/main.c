@@ -8,7 +8,7 @@ main()
     Parser p = {0};
     ParserLoadJson(&p, "test/t3.json");
 
-    ParserParseNode(&p, p.pHead);
+    ParserParse(&p);
 
     /*p.l.pos = 0;*/
     /*char* pData = p.l.slData.data;*/

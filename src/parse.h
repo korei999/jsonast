@@ -21,7 +21,5 @@ struct Parser
 
 void ParserLoadJson(Parser* self, char* path);
 void ParserClean(Parser* self);
-Token ParserNext(Parser* self);
-void ParserParseNode(Parser* self, JSONNode* pNode);
-void ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding);
+void ParserParse(Parser* self);
 void ParserPrintJSON(Parser* self);

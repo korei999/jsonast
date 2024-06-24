@@ -1,5 +1,6 @@
 #include "parse.h"
-#include "adt/array.h"
+
+static void ParserParseNode(Parser* self, JSONNode* pNode);
 
 static void
 ParserExpect(Parser* self, enum JSONToken t)
@@ -75,6 +76,12 @@ ParserClean(Parser* self)
 
 }
 
+void
+ParserParse(Parser* self)
+{
+    ParserParseNode(self, self->pHead);
+}
+
 Token
 ParserNext(Parser* self)
 {
@@ -119,12 +126,12 @@ ParserParseObject(Parser* self, JSONNode* pNode)
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
 }
 
-void
+static void
 ParserParseArray(Parser* self, JSONNode* pNode)
 {
 }
 
-void
+static void
 ParserParseNumber(Parser* self, JSONTagVal* pNode)
 {
     char buff[255] = {0};
@@ -143,14 +150,14 @@ ParserParseNumber(Parser* self, JSONTagVal* pNode)
     ParserNext(self);
 }
 
-void
+static void
 ParserParseIdent(Parser* self, JSONTagVal* pNode)
 {
     *pNode = JSON_NEW_TAGVAL(JSON_STRING, self->tCurr.slLiteral);
     ParserNext(self);
 }
 
-void
+static void
 ParserParseBool(Parser* self, JSONTagVal* pNode)
 {
     bool b = self->tCurr.type == TOK_TRUE ? true : false;
@@ -158,7 +165,7 @@ ParserParseBool(Parser* self, JSONTagVal* pNode)
     ParserNext(self);
 }
 
-void
+static void
 ParserParseNode(Parser* self, JSONNode* pNode)
 {
     switch (self->tCurr.type)
@@ -192,7 +199,7 @@ ParserParseNode(Parser* self, JSONNode* pNode)
     }
 }
 
-void
+static void
 ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
 {
     SliceStr key = pNode->slKey;
