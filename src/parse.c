@@ -52,6 +52,9 @@ ParserCleanNode(Parser* self, JSONNode* pNode)
 {
     switch (pNode->tagVal.tag)
     {
+        default:
+            break;
+
         case JSON_OBJECT:
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
@@ -93,11 +96,13 @@ ParserParseObject(Parser* self, JSONNode* pNode)
     size_t cap = 10;
     size_t i = 0;
 
+    /* collect each key/value pair in the object */
     for (Token t = self->tCurr; t.type != TOK_RBRACE; t = ParserNext(self))
     {
         ParserExpect(self, TOK_IDENT);
         pNode->tagVal.val.JSON_OBJECT.aNodes[i].slKey = t.slLiteral;
 
+        /* skip identifier and ':' */
         t = ParserNext(self);
         t = ParserNext(self);
 
@@ -158,6 +163,10 @@ ParserParseNode(Parser* self, JSONNode* pNode)
 {
     switch (self->tCurr.type)
     {
+        default:
+            ParserNext(self);
+            break;
+
         case TOK_IDENT:
             ParserParseIdent(self, &pNode->tagVal);
             break;
@@ -168,6 +177,11 @@ ParserParseNode(Parser* self, JSONNode* pNode)
 
         case TOK_LBRACE:
             ParserNext(self); /* skip brace */
+            ParserParseObject(self, pNode);
+            break;
+
+        case TOK_LBRACKET:
+            ParserNext(self);
             ParserParseObject(self, pNode);
             break;
 
@@ -185,6 +199,9 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
 
     switch (pNode->tagVal.tag)
     {
+        default:
+            break;
+
         case JSON_OBJECT:
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
