@@ -75,6 +75,7 @@ PAIR_GEN_CODE(SliceStr, PChar, size_t);
         double: GenArgDouble,                                                                                          \
         char*: GenArgPChar,                                                                                            \
         const char*: GenArgCPChar,                                                                                     \
+        bool: GenArgBool,                                                                                              \
         void*: GenArgPVoid)(A)
 
 
@@ -92,6 +93,7 @@ typedef struct GenArg
         GA_DOUBLE,
         GA_PCHAR,
         GA_CPCHAR,
+        GA_BOOL,
         GA_PVOID
     } tag;
     union
@@ -106,6 +108,7 @@ typedef struct GenArg
         struct GA_DOUBLE { double d; } GA_DOUBLE;
         struct GA_PCHAR { char* p; } GA_PCHAR;
         struct GA_CPCHAR { const char* cp; } GA_CPCHAR;
+        struct GA_BOOL { bool b; } GA_BOOL;
         struct GA_PVOID { char* v; } GA_PVOID;
     } data;
 } GenArg;
@@ -168,6 +171,12 @@ static inline GenArg
 GenArgCPChar(const char* cp)
 {
     return GA_NEW(GA_CPCHAR, cp);
+}
+
+static inline GenArg
+GenArgBool(bool b)
+{
+    return GA_NEW(GA_BOOL, b);
 }
 
 static inline GenArg
@@ -236,6 +245,10 @@ fprintg(FILE* fp, char* fmt, ...)
 
                 case GA_CPCHAR:
                     fprintf(fp, "%s", ga.data.GA_CPCHAR.cp);
+                    break;
+
+                case GA_BOOL:
+                    fprintf(fp, "%s", ga.data.GA_BOOL.b ? "true" : "false");
                     break;
 
                 case GA_PVOID:

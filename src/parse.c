@@ -1,8 +1,5 @@
 #include "parse.h"
 #include "adt/array.h"
-#include "strtonum.h"
-
-#include <string.h>
 
 void reallocNode(JSONNode* pNode, size_t size);
 
@@ -206,6 +203,14 @@ ParserParseIdent(Parser* self, JSONTagVal* pNode)
 }
 
 void
+ParserParseBool(Parser* self, JSONTagVal* pNode)
+{
+    bool b = self->tCurr.type == TOK_TRUE ? true : false;
+    *pNode = JSON_NEW_TAGVAL(JSON_BOOL, b);
+    ParserNext(self);
+}
+
+void
 ParserParseNode(Parser* self, JSONNode* pNode)
 {
     switch (self->tCurr.type)
@@ -225,7 +230,7 @@ ParserParseNode(Parser* self, JSONNode* pNode)
 
         case TOK_TRUE:
         case TOK_FALSE:
-            ParserParseIdent(self, &pNode->tagVal);
+            ParserParseBool(self, &pNode->tagVal);
             break;
     }
 }
@@ -233,6 +238,8 @@ ParserParseNode(Parser* self, JSONNode* pNode)
 void
 ParserPrintNode(Parser* self, JSONNode* pNode)
 {
+    SliceStr key = pNode->slKey;
+
     switch (pNode->tagVal.tag)
     {
         case JSON_OBJECT:
@@ -245,7 +252,6 @@ ParserPrintNode(Parser* self, JSONNode* pNode)
 
         case JSON_FLOAT:
             {
-                auto key = pNode->slKey;
                 float f = pNode->tagVal.val.JSON_FLOAT.f;
                 COUT("{}: {}\n", key, f);
             }
@@ -253,7 +259,6 @@ ParserPrintNode(Parser* self, JSONNode* pNode)
 
         case JSON_INT:
             {
-                auto key = pNode->slKey;
                 int i = pNode->tagVal.val.JSON_INT.i;
                 COUT("{}: {}\n", key, i);
             }
@@ -261,9 +266,15 @@ ParserPrintNode(Parser* self, JSONNode* pNode)
 
         case JSON_STRING:
             {
-                auto key = pNode->slKey;
                 SliceStr sl = pNode->tagVal.val.JSON_STRING.sl;
                 COUT("{}: {}\n", key, sl);
+            }
+            break;
+
+        case JSON_BOOL:
+            {
+                bool b = pNode->tagVal.val.JSON_BOOL.b;
+                COUT("{}: {}\n", key, b);
             }
             break;
     }
