@@ -1,10 +1,18 @@
 #pragma once
 #include "lex.h"
 
+#define PARSER_ERR(CODE, ...)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        CERR("parser error: ");                                                                                        \
+        CERR(__VA_ARGS__);                                                                                             \
+    } while (0)
+
 typedef struct Parser Parser;
 
 struct Parser
 {
+    char* name;
     Lex l;
     Token tCurr;
     Token tNext;
@@ -13,5 +21,6 @@ struct Parser
 
 void ParserLoadJson(Parser* self, char* path);
 void ParserClean(Parser* self);
-void ParserNext(Parser* self);
-void ParserParse(Parser* self, JSONNode* pNode);
+Token ParserNext(Parser* self);
+void ParserParseNode(Parser* self, JSONNode* pNode);
+void ParserPrintNode(Parser* self, JSONNode* pNode);

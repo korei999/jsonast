@@ -31,7 +31,7 @@ union JSONVal
 {
     struct JSON_STRING { SliceStr sl;                                  } JSON_STRING;
     struct JSON_INT    { long i;                                       } JSON_INT;
-    struct JSON_FLOAT  { double i;                                     } JSON_FLOAT;
+    struct JSON_FLOAT  { double f;                                     } JSON_FLOAT;
     struct JSON_ARRAY  { JSONTagVal* aTagValues; size_t tagValueCount; } JSON_ARRAY;
     struct JSON_OBJECT { JSONNode* aNodes;       size_t nodeCount;     } JSON_OBJECT;
     struct JSON_BOOL   { bool b;                                       } JSON_BOOL;
@@ -46,6 +46,6 @@ struct JSONTagVal
 
 struct JSONNode
 {
-    char* strKey;
+    SliceStr slKey;
     JSONTagVal tagVal;
 };
