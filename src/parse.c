@@ -8,6 +8,9 @@
     } while (0)
 
 static void ParserParseNode(Parser* self, JSONNode* pNode);
+static void ParserParseNumber(Parser* self, JSONTagVal* pNode);
+static void ParserParseIdent(Parser* self, JSONTagVal* pNode);
+static void ParserParseBool(Parser* self, JSONTagVal* pNode);
 
 static void
 ParserExpect(Parser* self, enum JSONToken t)
@@ -69,6 +72,21 @@ ParserCleanNode(Parser* self, JSONNode* pNode)
                 for (size_t i = 0; i < obj.nodeCount; i++)
                     ParserCleanNode(self, &obj.aNodes[i]);
                 free(obj.aNodes);
+            }
+            break;
+
+        case JSON_ARRAY:
+            {
+                struct JSON_ARRAY arr = pNode->tagVal.val.JSON_ARRAY;
+                for (size_t i = 0; i < arr.tagValueCount; i++)
+                {
+                    if (arr.aTagValues[i].tag == JSON_OBJECT)
+                    {
+                        ParserCleanNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes);
+                        free(arr.aTagValues[i].val.JSON_OBJECT.aNodes);
+                    }
+                }
+                free(arr.aTagValues);
             }
             break;
     }
@@ -136,6 +154,52 @@ ParserParseObject(Parser* self, JSONNode* pNode)
 static void
 ParserParseArray(Parser* self, JSONNode* pNode)
 {
+    pNode->tagVal.tag = JSON_ARRAY;
+    pNode->tagVal.val.JSON_ARRAY.aTagValues = calloc(10, sizeof(JSONTagVal)); /* TODO: realloc */
+    pNode->tagVal.val.JSON_ARRAY.tagValueCount = 0;
+    size_t cap = 10;
+    size_t i = 0;
+
+    /* collect each key/value pair in the object */
+    for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = ParserNext(self))
+    {
+        auto tt = t.type;
+        switch (tt)
+        {
+            default:
+                break;
+
+            case TOK_TRUE:
+            case TOK_FALSE:
+                ParserParseBool(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                break;
+
+            case TOK_NUMBER:
+                ParserParseNumber(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                break;
+
+            case TOK_IDENT:
+                ParserParseIdent(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                break;
+
+            case TOK_LBRACE:
+                t = ParserNext(self);
+                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].tag = JSON_OBJECT;
+                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = calloc(10, sizeof(JSONNode));
+                ParserParseObject(self, pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes);
+                break;
+        }
+
+        i++;
+
+        if (self->tCurr.type != TOK_COMMA)
+        {
+            ParserNext(self);
+            break;
+        }
+    }
+
+    pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
 }
 
 static void
@@ -195,8 +259,8 @@ ParserParseNode(Parser* self, JSONNode* pNode)
             break;
 
         case TOK_LBRACKET:
-            ParserNext(self);
-            ParserParseObject(self, pNode);
+            ParserNext(self); /* skip bracket */
+            ParserParseArray(self, pNode);
             break;
 
         case TOK_TRUE:
@@ -219,7 +283,7 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
         case JSON_OBJECT:
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
-                SliceStr objName0 = pNode->slKey.size == 0 ? SLSTR_NEW_LIT("") : pNode->slKey;
+                SliceStr objName0 = key.size == 0 ? SLSTR_NEW_LIT("") : key;
                 SliceStr objName1 = objName0.size > 0 ? SLSTR_NEW_LIT(": ") : SLSTR_NEW_LIT("");
 
                 COUT("{}{}{\n", objName0, objName1);
@@ -229,6 +293,62 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                     ParserPrintNode(self, &obj.aNodes[i], slE);
                 }
                 COUT("}{}", slEnding);
+            }
+            break;
+
+        case JSON_ARRAY:
+            {
+                struct JSON_ARRAY arr = pNode->tagVal.val.JSON_ARRAY;
+                SliceStr arrName0 = key.size == 0 ? SLSTR_NEW_LIT("") : key;
+                SliceStr arrName1 = arrName0.size > 0 ? SLSTR_NEW_LIT(": ") : SLSTR_NEW_LIT("");
+
+                COUT("{}{}[\n", arrName0, arrName1);
+                for (size_t i = 0; i < arr.tagValueCount; i++)
+                {
+                    SliceStr slE = (i == arr.tagValueCount - 1) ? SLSTR_NEW_LIT("\n") : SLSTR_NEW_LIT(",\n");
+
+                    switch (arr.aTagValues[i].tag)
+                    {
+                        default:
+                            /*COUT("{}, n: {}\n", tokenStrings[arr.aTagValues[i].tag], arr.tagValueCount);*/
+                            break;
+
+                        case JSON_INT:
+                            {
+                                int num = arr.aTagValues[i].val.JSON_INT.i;
+                                COUT("{}{}", num, slE);
+                            }
+                            break;
+
+                        case JSON_FLOAT:
+                            {
+                                double dnum = arr.aTagValues[i].val.JSON_FLOAT.f;
+                                COUT("{}{}", dnum, slE);
+                            }
+                            break;
+
+                        case JSON_BOOL:
+                            {
+                                bool b = arr.aTagValues[i].val.JSON_BOOL.b;
+                                COUT("{}{}", b, slE);
+                            }
+                            break;
+
+                        case JSON_STRING:
+                            {
+                                SliceStr sl = arr.aTagValues[i].val.JSON_STRING.sl;
+                                COUT("{}{}", sl, slE);
+                            }
+                            break;
+
+                        case JSON_OBJECT:
+                            {
+                                ParserPrintNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes, slE);
+                            }
+                            break;
+                    }
+                }
+                COUT("]{}", slEnding);
             }
             break;
 

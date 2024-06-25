@@ -12,5 +12,6 @@
     "obj2": {
         "five": 4,
         "six": 6.666
-    }
+    },
+    "arr": [3, "three", 3.0, {"three": true}]
 }
