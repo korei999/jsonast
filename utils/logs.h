@@ -236,7 +236,7 @@ fprintg(FILE* fp, char* fmt, ...)
                     break;
 
                 case GA_DOUBLE:
-                    fprintf(fp, "%lf", ga.data.GA_DOUBLE.d);
+                    fprintf(fp, "%.17lf", ga.data.GA_DOUBLE.d);
                     break;
 
                 case GA_PCHAR:

@@ -358,7 +358,8 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
 
         case JSON_FLOAT:
             {
-                float f = pNode->tagVal.val.JSON_FLOAT.f;
+                /* TODO: add some sort formatting for floats */
+                double f = pNode->tagVal.val.JSON_FLOAT.f;
                 COUT("{}: {}{}", key, f, slEnding);
             }
             break;
