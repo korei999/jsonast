@@ -10,6 +10,7 @@ struct Parser
     Token tCurr;
     Token tNext;
     JSONNode* pHead;
+    /* TODO: this desperately need arena allocator */
 };
 
 void ParserLoadJson(Parser* self, char* path);
