@@ -20,6 +20,7 @@ enum JSONToken
     TOK_NUMBER = 'N',
     TOK_TRUE = 'T',
     TOK_FALSE = 'F',
+    TOK_NULL = 'n',
     TOK_ASSIGN = ':',
     TOK_COMMA = ',',
     TOK_DOT = '.',

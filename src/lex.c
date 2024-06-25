@@ -193,7 +193,9 @@ LexStringNoQuotes(Lex* self)
     r.slLiteral.data = &pData[start];
     r.slLiteral.size = i - start;
 
-    if (strncmp("false", r.slLiteral.data, r.slLiteral.size) == 0)
+    if (strncmp("null", r.slLiteral.data, r.slLiteral.size) == 0)
+        r.type = TOK_NULL;
+    else if (strncmp("false", r.slLiteral.data, r.slLiteral.size) == 0)
         r.type = TOK_FALSE;
     else if (strncmp("true", r.slLiteral.data, r.slLiteral.size) == 0)
         r.type = TOK_TRUE;

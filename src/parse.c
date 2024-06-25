@@ -3,15 +3,18 @@
 #define PARSER_ERR(CODE, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        CERR("parser error: ");                                                                                        \
+        CERR("parser error: {}, {}: ", self->tCurr.slLiteral, self->tNext.slLiteral);                                  \
         CERR(__VA_ARGS__);                                                                                             \
+        exit(CODE);                                                                                                    \
     } while (0)
 
 static void ParserParseNode(Parser* self, JSONNode* pNode);
 static void ParserParseNumber(Parser* self, JSONTagVal* pNode);
 static void ParserParseIdent(Parser* self, JSONTagVal* pNode);
 static void ParserParseBool(Parser* self, JSONTagVal* pNode);
+static void ParserParseNull(Parser* self, JSONTagVal* pNode);
 
+/* TODO: expects are not very useful rg */
 static void
 ParserExpect(Parser* self, enum JSONToken t)
 {
@@ -19,12 +22,12 @@ ParserExpect(Parser* self, enum JSONToken t)
         PARSER_ERR(2, "next expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tCurr.type]);
 }
 
-static void
-ParserExpectNext(Parser* self, enum JSONToken t)
-{
-    if (self->tNext.type != t)
-        PARSER_ERR(2, "curr expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tNext.type]);
-}
+/*static void*/
+/*ParserExpectNext(Parser* self, enum JSONToken t)*/
+/*{*/
+/*    if (self->tNext.type != t)*/
+/*        PARSER_ERR(2, "curr expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tNext.type]);*/
+/*}*/
 
 void
 ParserLoadJson(Parser* self, char* path)
@@ -113,9 +116,6 @@ ParserNext(Parser* self)
     self->tCurr = self->tNext;
     self->tNext = LexNext(&self->l);
 
-    /*COUT("tCurr: ({}) | '{}'\n", tokenStrings[self->tCurr.type], self->tCurr.slLiteral);*/
-    /*COUT("tNext: ({}) | '{}'\n", tokenStrings[self->tNext.type], self->tNext.slLiteral);*/
-
     return self->tCurr;
 }
 
@@ -139,6 +139,7 @@ ParserParseObject(Parser* self, JSONNode* pNode)
 
         /* skip identifier and ':' */
         t = ParserNext(self);
+        ParserExpect(self, TOK_ASSIGN);
         t = ParserNext(self);
 
         ParserParseNode(self, &pNode->tagVal.val.JSON_OBJECT.aNodes[i]);
@@ -173,6 +174,14 @@ ParserParseArray(Parser* self, JSONNode* pNode)
         switch (tt)
         {
             default:
+            case TOK_IDENT:
+                ParserParseIdent(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                break;
+
+            case TOK_NULL:
+                ParserParseNull(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                break;
+
             case TOK_TRUE:
             case TOK_FALSE:
                 ParserParseBool(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
@@ -182,9 +191,6 @@ ParserParseArray(Parser* self, JSONNode* pNode)
                 ParserParseNumber(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
-            case TOK_IDENT:
-                ParserParseIdent(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
-                break;
 
             case TOK_LBRACE:
                 t = ParserNext(self);
@@ -241,6 +247,13 @@ ParserParseBool(Parser* self, JSONTagVal* pNode)
 }
 
 static void
+ParserParseNull(Parser* self, JSONTagVal* pNode)
+{
+    *pNode = JSON_NEW_TAGVAL(JSON_NULL, NULL);
+    ParserNext(self);
+}
+
+static void
 ParserParseNode(Parser* self, JSONNode* pNode)
 {
     switch (self->tCurr.type)
@@ -265,6 +278,11 @@ ParserParseNode(Parser* self, JSONNode* pNode)
         case TOK_LBRACKET:
             ParserNext(self); /* skip bracket */
             ParserParseArray(self, pNode);
+            break;
+
+        case TOK_NULL:
+            COUT("NULL\n");
+            ParserParseNull(self, &pNode->tagVal);
             break;
 
         case TOK_TRUE:
@@ -314,7 +332,15 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                     switch (arr.aTagValues[i].tag)
                     {
                         default:
-                            /*COUT("{}, n: {}\n", tokenStrings[arr.aTagValues[i].tag], arr.tagValueCount);*/
+                        case JSON_STRING:
+                            {
+                                SliceStr sl = arr.aTagValues[i].val.JSON_STRING.sl;
+                                COUT("{}{}", sl, slE);
+                            }
+                            break;
+
+                        case JSON_NULL:
+                                COUT("{}{}", "null", slE);
                             break;
 
                         case JSON_INT:
@@ -338,17 +364,8 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                             }
                             break;
 
-                        case JSON_STRING:
-                            {
-                                SliceStr sl = arr.aTagValues[i].val.JSON_STRING.sl;
-                                COUT("{}{}", sl, slE);
-                            }
-                            break;
-
                         case JSON_OBJECT:
-                            {
                                 ParserPrintNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes, slE);
-                            }
                             break;
                     }
                 }
@@ -369,6 +386,10 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                 int i = pNode->tagVal.val.JSON_INT.i;
                 COUT("{}: {}{}", key, i, slEnding);
             }
+            break;
+
+        case JSON_NULL:
+                COUT("{}: {}{}", key, "null", slEnding);
             break;
 
         case JSON_STRING:

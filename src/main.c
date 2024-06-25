@@ -17,6 +17,15 @@ main(int argc, char* argv[])
     /*ParserLoadJson(&p, "test/t1.json");*/
     /*ParserLoadJson(&p, "test/t3.json");*/
 
+    /*p.l.pos = 0;*/
+    /*char* pData = p.l.slData.data;*/
+    /*while (p.l.pos < p.l.slData.size)*/
+    /*{*/
+    /*    Token t = LexNext(&p.l);*/
+    /*    COUT("{}: '{}'\n", tokenStrings[t.type], t.slLiteral);*/
+    /*}*/
+    /*COUT("\n");*/
+
     ParserParse(&p);
     ParserPrintJSON(&p);
     ParserClean(&p);
