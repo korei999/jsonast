@@ -123,14 +123,17 @@ void
 ParserParseObject(Parser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_OBJECT;
-    pNode->tagVal.val.JSON_OBJECT.aNodes = calloc(10, sizeof(JSONNode)); /* TODO: realloc */
+    pNode->tagVal.val.JSON_OBJECT.aNodes = (JSONNode*)calloc(4, sizeof(JSONNode));
     pNode->tagVal.val.JSON_OBJECT.nodeCount = 0;
-    size_t cap = 10;
+    size_t cap = 4;
     size_t i = 0;
 
     /* collect each key/value pair in the object */
     for (Token t = self->tCurr; t.type != TOK_RBRACE; t = ParserNext(self))
     {
+        if (i >= cap)
+            pNode->tagVal.val.JSON_OBJECT.aNodes = reallocarray(pNode->tagVal.val.JSON_OBJECT.aNodes, cap *= 2, sizeof(JSONNode));
+
         ParserExpect(self, TOK_IDENT);
         pNode->tagVal.val.JSON_OBJECT.aNodes[i].slKey = t.slLiteral;
 
@@ -155,14 +158,17 @@ static void
 ParserParseArray(Parser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_ARRAY;
-    pNode->tagVal.val.JSON_ARRAY.aTagValues = calloc(10, sizeof(JSONTagVal)); /* TODO: realloc */
+    pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)calloc(4, sizeof(JSONTagVal));
     pNode->tagVal.val.JSON_ARRAY.tagValueCount = 0;
-    size_t cap = 10;
+    size_t cap = 4;
     size_t i = 0;
 
     /* collect each key/value pair in the object */
     for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = ParserNext(self))
     {
+        if (i >= cap)
+            pNode->tagVal.val.JSON_ARRAY.aTagValues = reallocarray(pNode->tagVal.val.JSON_ARRAY.aTagValues, cap *= 2, sizeof(JSONTagVal));
+
         auto tt = t.type;
         switch (tt)
         {
@@ -183,7 +189,7 @@ ParserParseArray(Parser* self, JSONNode* pNode)
             case TOK_LBRACE:
                 t = ParserNext(self);
                 pNode->tagVal.val.JSON_ARRAY.aTagValues[i].tag = JSON_OBJECT;
-                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = calloc(10, sizeof(JSONNode));
+                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = (JSONNode*)calloc(1, sizeof(JSONNode));
                 ParserParseObject(self, pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes);
                 break;
         }

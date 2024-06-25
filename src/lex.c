@@ -67,6 +67,8 @@ LexNext(Lex* self)
                 self->pos++;
             break;
 
+        case '-':
+        case '+':
         case '0':
         case '1':
         case '2':
@@ -153,9 +155,10 @@ LexNumber(Lex* self)
     char* pData = self->slData.data;
     size_t start = self->pos;
     size_t i = start;
-    size_t ni = 0;
+    /*size_t ni = 0;*/
 
-    while (isxdigit(pData[i]) || pData[i] == '.') /* floats */
+    /* allow floats and also +/- sign */
+    while (isxdigit(pData[i]) || pData[i] == '.' || pData[i] == '-' || pData[i] == '+')
     {
         /*self->column++;*/
         i++;
@@ -178,7 +181,7 @@ LexStringNoQuotes(Lex* self)
     char* pData = self->slData.data;
     size_t start = self->pos;
     size_t i = start;
-    size_t ni = 0;
+    /*size_t ni = 0;*/
 
     while (isalpha(pData[i]))
     {
