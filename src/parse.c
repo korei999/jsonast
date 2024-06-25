@@ -132,7 +132,7 @@ ParserParseObject(Parser* self, JSONNode* pNode)
     for (Token t = self->tCurr; t.type != TOK_RBRACE; t = ParserNext(self))
     {
         if (i >= cap)
-            pNode->tagVal.val.JSON_OBJECT.aNodes = reallocarray(pNode->tagVal.val.JSON_OBJECT.aNodes, cap *= 2, sizeof(JSONNode));
+            pNode->tagVal.val.JSON_OBJECT.aNodes = realloc(pNode->tagVal.val.JSON_OBJECT.aNodes, (cap *= 2) * sizeof(JSONNode));
 
         ParserExpect(self, TOK_IDENT);
         pNode->tagVal.val.JSON_OBJECT.aNodes[i].slKey = t.slLiteral;
@@ -168,7 +168,7 @@ ParserParseArray(Parser* self, JSONNode* pNode)
     for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = ParserNext(self))
     {
         if (i >= cap)
-            pNode->tagVal.val.JSON_ARRAY.aTagValues = reallocarray(pNode->tagVal.val.JSON_ARRAY.aTagValues, cap *= 2, sizeof(JSONTagVal));
+            pNode->tagVal.val.JSON_ARRAY.aTagValues = realloc(pNode->tagVal.val.JSON_ARRAY.aTagValues, (cap *= 2) * sizeof(JSONTagVal));
 
         auto tt = t.type;
         switch (tt)
@@ -281,7 +281,6 @@ ParserParseNode(Parser* self, JSONNode* pNode)
             break;
 
         case TOK_NULL:
-            COUT("NULL\n");
             ParserParseNull(self, &pNode->tagVal);
             break;
 
