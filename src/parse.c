@@ -30,14 +30,13 @@ ParserExpect(Parser* self, enum JSONToken t)
 /*}*/
 
 void
-ParserLoadJson(Parser* self, char* path)
+ParserLoadJSON(Parser* self, char* path)
 {
     LexLoadFile(&self->l, path);
 
     if (self->l.slData.size <= 1)
     {
-        CERR("{}: is empty\n", path);
-        exit(1);
+        PARSER_ERR(2, "unable to open file '{}'\n", path);
     }
 
     self->pHead = (JSONNode*)calloc(1, sizeof(JSONNode));

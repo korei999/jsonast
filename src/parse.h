@@ -13,7 +13,7 @@ struct Parser
     /* TODO: this desperately need arena allocator */
 };
 
-void ParserLoadJson(Parser* self, char* path);
+void ParserLoadJSON(Parser* self, char* path);
 void ParserParse(Parser* self);
 void ParserPrintJSON(Parser* self);
 void ParserClean(Parser* self);

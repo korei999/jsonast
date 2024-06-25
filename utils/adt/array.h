@@ -20,7 +20,7 @@
         if (self->size >= self->capacity)                                                                              \
         {                                                                                                              \
             self->capacity *= 2;                                                                                       \
-            self->pData = (T*)reallocarray(self->pData, self->capacity, sizeof(T));                                    \
+            self->pData = (T*)realloc(self->pData, self->capacity * sizeof(T));                                        \
         }                                                                                                              \
                                                                                                                        \
         self->pData[self->size++] = value;                                                                             \

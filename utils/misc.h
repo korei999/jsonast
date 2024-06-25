@@ -79,15 +79,19 @@ loadFile(const void* path)
     Slice sl = {0};
 
     FILE* pf = fopen(path, "rb");
-    fseek(pf, 0, SEEK_END);
-    sl.size = ftell(pf) + 1;
-    rewind(pf);
+    if (pf)
+    {
+        fseek(pf, 0, SEEK_END);
+        sl.size = ftell(pf) + 1;
+        rewind(pf);
 
-    sl.data = (void*)malloc(sl.size);
-    fread(sl.data, 1, sl.size, pf);
-    fclose(pf);
+        sl.data = (void*)malloc(sl.size);
+        fread(sl.data, 1, sl.size, pf);
+        sl.data[sl.size - 1] = 0;
 
-    sl.data[sl.size - 1] = 0;
+        fclose(pf);
+    }
+
 
     return sl;
 }
