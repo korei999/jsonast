@@ -167,8 +167,6 @@ ParserParseArray(Parser* self, JSONNode* pNode)
         switch (tt)
         {
             default:
-                break;
-
             case TOK_TRUE:
             case TOK_FALSE:
                 ParserParseBool(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
