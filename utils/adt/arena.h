@@ -108,8 +108,7 @@ ArenaRealloc(Arena* a, void* pSrc, size_t nbytes, size_t newBytes)
 
     if (a->pLastAllocatedBlock == pSrc && (a->lastAllocationSize + alignedSize) < a->cap)
     {
-        a->pLast->size += alignedSize;
-        a->lastAllocationSize = a->pLast->size;
+        a->pLast->size = a->lastAllocationSize + alignedSize;
         pDest = pSrc;
     }
     else
