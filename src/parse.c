@@ -8,38 +8,40 @@
         exit(CODE);                                                                                                    \
     } while (0)
 
-static void ParserParseNode(Parser* self, JSONNode* pNode);
-static void ParserParseNumber(Parser* self, JSONTagVal* pNode);
-static void ParserParseIdent(Parser* self, JSONTagVal* pNode);
-static void ParserParseBool(Parser* self, JSONTagVal* pNode);
-static void ParserParseNull(Parser* self, JSONTagVal* pNode);
+static void JSONParserParseNode(JSONParser* self, JSONNode* pNode);
+static void JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode);
+static void JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode);
+static void JSONParserParseBool(JSONParser* self, JSONTagVal* pNode);
+static void JSONParserParseNull(JSONParser* self, JSONTagVal* pNode);
 
 /* TODO: expects are not very useful rg */
 static void
-ParserExpect(Parser* self, enum JSONToken t)
+JSONParserExpect(JSONParser* self, enum JSONToken t)
 {
     if (self->tCurr.type != t)
         PARSER_ERR(2, "next expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tCurr.type]);
 }
 
 /*static void*/
-/*ParserExpectNext(Parser* self, enum JSONToken t)*/
+/*ParserExpectNext(JSONParser* self, enum JSONToken t)*/
 /*{*/
 /*    if (self->tNext.type != t)*/
 /*        PARSER_ERR(2, "curr expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tNext.type]);*/
 /*}*/
 
 void
-ParserLoadJSON(Parser* self, char* path)
+JSONParserLoadJSON(JSONParser* self, Arena* a, char* path)
 {
     LexLoadFile(&self->l, path);
+    self->pArena = a;
 
     if (self->l.slData.size <= 1)
     {
         PARSER_ERR(2, "unable to open file '{}'\n", path);
     }
 
-    self->pHead = (JSONNode*)calloc(1, sizeof(JSONNode));
+    /*self->pHead = (JSONNode*)calloc(1, sizeof(JSONNode));*/
+    self->pHead = ArenaCalloc(self->pArena, 1, sizeof(JSONNode));
     self->name = path;
 
     self->tCurr = LexNext(&self->l);
@@ -61,7 +63,7 @@ ParserLoadJSON(Parser* self, char* path)
 }
 
 static void
-ParserCleanNode(Parser* self, JSONNode* pNode)
+JSONParserCleanNode(JSONParser* self, JSONNode* pNode)
 {
     switch (pNode->tagVal.tag)
     {
@@ -72,7 +74,7 @@ ParserCleanNode(Parser* self, JSONNode* pNode)
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
                 for (size_t i = 0; i < obj.nodeCount; i++)
-                    ParserCleanNode(self, &obj.aNodes[i]);
+                    JSONParserCleanNode(self, &obj.aNodes[i]);
                 free(obj.aNodes);
             }
             break;
@@ -84,7 +86,7 @@ ParserCleanNode(Parser* self, JSONNode* pNode)
                 {
                     if (arr.aTagValues[i].tag == JSON_OBJECT)
                     {
-                        ParserCleanNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes);
+                        JSONParserCleanNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes);
                         free(arr.aTagValues[i].val.JSON_OBJECT.aNodes);
                     }
                 }
@@ -95,22 +97,21 @@ ParserCleanNode(Parser* self, JSONNode* pNode)
 }
 
 void
-ParserClean(Parser* self)
+JSONParserClean(JSONParser* self)
 {
-    ParserCleanNode(self, self->pHead);
-    free(self->pHead);
+    /*JSONParserCleanNode(self, self->pHead);*/
+    /*free(self->pHead);*/
     LexClean(&self->l);
-
 }
 
 void
-ParserParse(Parser* self)
+JSONParserParse(JSONParser* self)
 {
-    ParserParseNode(self, self->pHead);
+    JSONParserParseNode(self, self->pHead);
 }
 
 Token
-ParserNext(Parser* self)
+JSONParserNext(JSONParser* self)
 {
     self->tCurr = self->tNext;
     self->tNext = LexNext(&self->l);
@@ -119,34 +120,42 @@ ParserNext(Parser* self)
 }
 
 void
-ParserParseObject(Parser* self, JSONNode* pNode)
+JSONParserParseObject(JSONParser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_OBJECT;
-    pNode->tagVal.val.JSON_OBJECT.aNodes = (JSONNode*)calloc(4, sizeof(JSONNode));
+    /*pNode->tagVal.val.JSON_OBJECT.aNodes = (JSONNode*)calloc(4, sizeof(JSONNode));*/
+    pNode->tagVal.val.JSON_OBJECT.aNodes = ArenaCalloc(self->pArena, 4, sizeof(JSONNode));
     pNode->tagVal.val.JSON_OBJECT.nodeCount = 0;
     size_t cap = 4;
     size_t i = 0;
 
     /* collect each key/value pair in the object */
-    for (Token t = self->tCurr; t.type != TOK_RBRACE; t = ParserNext(self))
+    for (Token t = self->tCurr; t.type != TOK_RBRACE; t = JSONParserNext(self))
     {
-        if (i >= cap)
-            pNode->tagVal.val.JSON_OBJECT.aNodes = realloc(pNode->tagVal.val.JSON_OBJECT.aNodes, (cap *= 2) * sizeof(JSONNode));
+        /*if (i >= cap)*/
+        /*    pNode->tagVal.val.JSON_OBJECT.aNodes = realloc(pNode->tagVal.val.JSON_OBJECT.aNodes,*/
+        /*                                                   (cap *= 2) * sizeof(JSONNode));*/
 
-        ParserExpect(self, TOK_IDENT);
+        if (i >= cap)
+            pNode->tagVal.val.JSON_OBJECT.aNodes = ArenaRealloc(self->pArena,
+                                                                pNode->tagVal.val.JSON_OBJECT.aNodes,
+                                                                i * sizeof(JSONNode),
+                                                                (cap *= 2) * sizeof(JSONNode));
+
+        JSONParserExpect(self, TOK_IDENT);
         pNode->tagVal.val.JSON_OBJECT.aNodes[i].slKey = t.slLiteral;
 
         /* skip identifier and ':' */
-        t = ParserNext(self);
-        ParserExpect(self, TOK_ASSIGN);
-        t = ParserNext(self);
+        t = JSONParserNext(self);
+        JSONParserExpect(self, TOK_ASSIGN);
+        t = JSONParserNext(self);
 
-        ParserParseNode(self, &pNode->tagVal.val.JSON_OBJECT.aNodes[i]);
+        JSONParserParseNode(self, &pNode->tagVal.val.JSON_OBJECT.aNodes[i]);
         i++;
 
         if (self->tCurr.type != TOK_COMMA)
         {
-            ParserNext(self);
+            JSONParserNext(self);
             break;
         }
     }
@@ -155,47 +164,56 @@ ParserParseObject(Parser* self, JSONNode* pNode)
 }
 
 static void
-ParserParseArray(Parser* self, JSONNode* pNode)
+JSONParserParseArray(JSONParser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_ARRAY;
-    pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)calloc(4, sizeof(JSONTagVal));
+    /*pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)calloc(4, sizeof(JSONTagVal));*/
+    pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)ArenaAlloc(self->pArena, 4 * sizeof(JSONTagVal));
     pNode->tagVal.val.JSON_ARRAY.tagValueCount = 0;
     size_t cap = 4;
     size_t i = 0;
 
     /* collect each key/value pair in the object */
-    for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = ParserNext(self))
+    for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = JSONParserNext(self))
     {
+        /*if (i >= cap)*/
+        /*    pNode->tagVal.val.JSON_ARRAY.aTagValues = realloc(pNode->tagVal.val.JSON_ARRAY.aTagValues,*/
+        /*                                                      (cap *= 2) * sizeof(JSONTagVal));*/
+
         if (i >= cap)
-            pNode->tagVal.val.JSON_ARRAY.aTagValues = realloc(pNode->tagVal.val.JSON_ARRAY.aTagValues, (cap *= 2) * sizeof(JSONTagVal));
+            pNode->tagVal.val.JSON_ARRAY.aTagValues = ArenaRealloc(self->pArena,
+                                                                   pNode->tagVal.val.JSON_ARRAY.aTagValues,
+                                                                   i * sizeof(JSONTagVal),
+                                                                   (cap *= 2) * sizeof(JSONTagVal));
 
         auto tt = t.type;
         switch (tt)
         {
             default:
             case TOK_IDENT:
-                ParserParseIdent(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                JSONParserParseIdent(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
             case TOK_NULL:
-                ParserParseNull(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                JSONParserParseNull(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
             case TOK_TRUE:
             case TOK_FALSE:
-                ParserParseBool(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                JSONParserParseBool(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
             case TOK_NUMBER:
-                ParserParseNumber(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
+                JSONParserParseNumber(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
 
             case TOK_LBRACE:
-                t = ParserNext(self);
+                t = JSONParserNext(self);
                 pNode->tagVal.val.JSON_ARRAY.aTagValues[i].tag = JSON_OBJECT;
-                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = (JSONNode*)calloc(1, sizeof(JSONNode));
-                ParserParseObject(self, pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes);
+                /*pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = (JSONNode*)calloc(1, sizeof(JSONNode));*/
+                pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = ArenaCalloc(self->pArena, 1, sizeof(JSONNode));
+                JSONParserParseObject(self, pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes);
                 break;
         }
 
@@ -203,7 +221,7 @@ ParserParseArray(Parser* self, JSONNode* pNode)
 
         if (self->tCurr.type != TOK_COMMA)
         {
-            ParserNext(self);
+            JSONParserNext(self);
             break;
         }
     }
@@ -212,7 +230,7 @@ ParserParseArray(Parser* self, JSONNode* pNode)
 }
 
 static void
-ParserParseNumber(Parser* self, JSONTagVal* pNode)
+JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode)
 {
     char buff[255] = {0};
     bool bReal = false;
@@ -227,71 +245,71 @@ ParserParseNumber(Parser* self, JSONTagVal* pNode)
     else
         *pNode = JSON_NEW_TAGVAL(JSON_INT, atoll(buff));
 
-    ParserNext(self);
+    JSONParserNext(self);
 }
 
 static void
-ParserParseIdent(Parser* self, JSONTagVal* pNode)
+JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode)
 {
     *pNode = JSON_NEW_TAGVAL(JSON_STRING, self->tCurr.slLiteral);
-    ParserNext(self);
+    JSONParserNext(self);
 }
 
 static void
-ParserParseBool(Parser* self, JSONTagVal* pNode)
+JSONParserParseBool(JSONParser* self, JSONTagVal* pNode)
 {
     bool b = self->tCurr.type == TOK_TRUE ? true : false;
     *pNode = JSON_NEW_TAGVAL(JSON_BOOL, b);
-    ParserNext(self);
+    JSONParserNext(self);
 }
 
 static void
-ParserParseNull(Parser* self, JSONTagVal* pNode)
+JSONParserParseNull(JSONParser* self, JSONTagVal* pNode)
 {
     *pNode = JSON_NEW_TAGVAL(JSON_NULL, NULL);
-    ParserNext(self);
+    JSONParserNext(self);
 }
 
 static void
-ParserParseNode(Parser* self, JSONNode* pNode)
+JSONParserParseNode(JSONParser* self, JSONNode* pNode)
 {
     switch (self->tCurr.type)
     {
         default:
-            ParserNext(self);
+            JSONParserNext(self);
             break;
 
         case TOK_IDENT:
-            ParserParseIdent(self, &pNode->tagVal);
+            JSONParserParseIdent(self, &pNode->tagVal);
             break;
 
         case TOK_NUMBER:
-            ParserParseNumber(self, &pNode->tagVal);
+            JSONParserParseNumber(self, &pNode->tagVal);
             break;
 
         case TOK_LBRACE:
-            ParserNext(self); /* skip brace */
-            ParserParseObject(self, pNode);
+            JSONParserNext(self); /* skip brace */
+            JSONParserParseObject(self, pNode);
             break;
 
         case TOK_LBRACKET:
-            ParserNext(self); /* skip bracket */
-            ParserParseArray(self, pNode);
+            JSONParserNext(self); /* skip bracket */
+            JSONParserParseArray(self, pNode);
             break;
 
         case TOK_NULL:
-            ParserParseNull(self, &pNode->tagVal);
+            JSONParserParseNull(self, &pNode->tagVal);
             break;
 
         case TOK_TRUE:
         case TOK_FALSE:
-            ParserParseBool(self, &pNode->tagVal);
+            JSONParserParseBool(self, &pNode->tagVal);
             break;
     }
 }
 
 static void
-ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
+JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
 {
     SliceStr key = pNode->slKey;
 
@@ -310,7 +328,7 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                 for (size_t i = 0; i < obj.nodeCount; i++)
                 {
                     SliceStr slE = (i == obj.nodeCount - 1) ? SLSTR_NEW_LIT("\n") : SLSTR_NEW_LIT(",\n");
-                    ParserPrintNode(self, &obj.aNodes[i], slE);
+                    JSONParserPrintNode(self, &obj.aNodes[i], slE);
                 }
                 COUT("}{}", slEnding);
             }
@@ -363,7 +381,7 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
                             break;
 
                         case JSON_OBJECT:
-                                ParserPrintNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes, slE);
+                                JSONParserPrintNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes, slE);
                             break;
                     }
                 }
@@ -407,8 +425,8 @@ ParserPrintNode(Parser* self, JSONNode* pNode, SliceStr slEnding)
 }
 
 void
-ParserPrintJSON(Parser* self)
+JSONParserPrintJSON(JSONParser* self)
 {
-    ParserPrintNode(self, self->pHead, SLSTR_NEW_LIT(""));
+    JSONParserPrintNode(self, self->pHead, SLSTR_NEW_LIT(""));
     COUT("\n");
 }

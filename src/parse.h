@@ -1,19 +1,20 @@
 #pragma once
 #include "lex.h"
+#include "adt/arena.h"
 
-typedef struct Parser Parser;
+typedef struct JSONParser JSONParser;
 
-struct Parser
+struct JSONParser
 {
     char* name;
     Lex l;
     Token tCurr;
     Token tNext;
     JSONNode* pHead;
-    /* TODO: this desperately need arena allocator */
+    Arena* pArena;
 };
 
-void ParserLoadJSON(Parser* self, char* path);
-void ParserParse(Parser* self);
-void ParserPrintJSON(Parser* self);
-void ParserClean(Parser* self);
+void JSONParserLoadJSON(JSONParser* self, Arena* a, char* path);
+void JSONParserParse(JSONParser* self);
+void JSONParserPrintJSON(JSONParser* self);
+void JSONParserClean(JSONParser* self);

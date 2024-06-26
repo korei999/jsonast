@@ -1,5 +1,6 @@
 #pragma once
 #include "adt/pair.h"
+#include "adt/arena.h"
 
 #include <stdio.h>
 #include <time.h>

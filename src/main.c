@@ -10,11 +10,15 @@ main(int argc, char* argv[])
         exit(3);
     }
 
-    Parser p = {0};
+    Arena frameArena = ArenaCreate(ARENA_1M * 10);
 
-    ParserLoadJSON(&p, argv[1]);
+    JSONParser p = {0};
 
-    ParserParse(&p);
-    ParserPrintJSON(&p);
-    ParserClean(&p);
+    JSONParserLoadJSON(&p, &frameArena, argv[1]);
+
+    JSONParserParse(&p);
+    JSONParserPrintJSON(&p);
+    JSONParserClean(&p);
+
+    ArenaClean(&frameArena);
 }
