@@ -10,7 +10,7 @@ main(int argc, char* argv[])
         exit(3);
     }
 
-    Arena frameArena = ArenaCreate(ARENA_1M * 10);
+    Arena frameArena = ArenaCreate(ARENA_1M);
 
     JSONParser p = {0};
 
