@@ -14,7 +14,7 @@ struct JSONParser
     Arena* pArena;
 };
 
-void JSONParserLoadJSON(JSONParser* self, Arena* a, char* path);
+JSONParser JSONParserCreate(Arena* a);
+void JSONParserLoadJSON(JSONParser* self, char* path);
 void JSONParserParse(JSONParser* self);
 void JSONParserPrintJSON(JSONParser* self);
-void JSONParserClean(JSONParser* self);

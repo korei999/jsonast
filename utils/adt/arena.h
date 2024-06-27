@@ -66,7 +66,7 @@ ArenaCreate(size_t bytes)
 }
 
 static inline void
-ArenaClean(Arena* a)
+ArenaFree(Arena* a)
 {
     ARENA_FOREACH_SAFE(a, it, tmp)
         free(it);

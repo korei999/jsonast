@@ -62,8 +62,10 @@ struct Lex
     SliceStr slTok;
     size_t line;
     size_t column;
+    Arena* pArena;
 };
 
+Lex LexCreate(Arena* a);
 void LexError(Lex* self);
 void LexLoadFile(Lex* self, char* path);
 void LexClean(Lex* self);

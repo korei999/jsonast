@@ -96,3 +96,26 @@ loadFile(const void* path)
 
     return sl;
 }
+
+static inline Slice
+loadFileA(Arena* a, const void* path)
+{
+    Slice sl = {0};
+
+    FILE* pf = fopen(path, "rb");
+    if (pf)
+    {
+        fseek(pf, 0, SEEK_END);
+        sl.size = ftell(pf) + 1;
+        rewind(pf);
+
+        sl.data = ArenaAlloc(a, sl.size);
+        fread(sl.data, 1, sl.size, pf);
+        sl.data[sl.size - 1] = 0;
+
+        fclose(pf);
+    }
+
+
+    return sl;
+}

@@ -4,11 +4,21 @@
 #include "lex.h"
 #include "misc.h"
 
+Lex
+LexCreate(Arena* a)
+{
+    Lex l = {0};
+    l.pArena = a;
+
+    return l;
+}
+
 void
 LexLoadFile(Lex* self, char* path)
 {
     self->fPath = path;
-    Slice f = loadFile(path);
+    /*Slice f = loadFile(path);*/
+    Slice f = loadFileA(self->pArena, path);
     self->slData.data = (char*)f.data;
     self->slData.size = f.size;
     self->pos = 0;

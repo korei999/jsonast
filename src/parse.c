@@ -29,11 +29,20 @@ JSONParserExpect(JSONParser* self, enum JSONToken t)
 /*        PARSER_ERR(2, "curr expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tNext.type]);*/
 /*}*/
 
+JSONParser
+JSONParserCreate(Arena* a)
+{
+    JSONParser p = {0};
+    p.pArena = a;
+    p.l = LexCreate(a);
+
+    return p;
+}
+
 void
-JSONParserLoadJSON(JSONParser* self, Arena* a, char* path)
+JSONParserLoadJSON(JSONParser* self, char* path)
 {
     LexLoadFile(&self->l, path);
-    self->pArena = a;
 
     if (self->l.slData.size <= 1)
     {
@@ -94,14 +103,6 @@ JSONParserCleanNode(JSONParser* self, JSONNode* pNode)
             }
             break;
     }
-}
-
-void
-JSONParserClean(JSONParser* self)
-{
-    /*JSONParserCleanNode(self, self->pHead);*/
-    /*free(self->pHead);*/
-    LexClean(&self->l);
 }
 
 void
