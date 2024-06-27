@@ -8,7 +8,9 @@
 #define ARENA_1K (1024UL)
 #define ARENA_4K (ARENA_1K * 4UL)
 #define ARENA_1M (ARENA_1K * 1024UL)
+#define ARENA_05M (ARENA_1M / 2UL)
 #define ARENA_1G (ARENA_1M * 1024UL)
+#define ARENA_05G (ARENA_1G / 2UL)
 
 #define ARENA_FIRST(A) ((A)->pBlocks)
 #define ARENA_NEXT(AB) ((AB)->pNext)

@@ -49,7 +49,6 @@ JSONParserLoadJSON(JSONParser* self, char* path)
         PARSER_ERR(2, "unable to open file '{}'\n", path);
     }
 
-    /*self->pHead = (JSONNode*)calloc(1, sizeof(JSONNode));*/
     self->pHead = ArenaCalloc(self->pArena, 1, sizeof(JSONNode));
     self->name = path;
 
@@ -124,7 +123,6 @@ void
 JSONParserParseObject(JSONParser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_OBJECT;
-    /*pNode->tagVal.val.JSON_OBJECT.aNodes = (JSONNode*)calloc(4, sizeof(JSONNode));*/
     pNode->tagVal.val.JSON_OBJECT.aNodes = ArenaCalloc(self->pArena, 4, sizeof(JSONNode));
     pNode->tagVal.val.JSON_OBJECT.nodeCount = 0;
     size_t cap = 4;
@@ -133,10 +131,6 @@ JSONParserParseObject(JSONParser* self, JSONNode* pNode)
     /* collect each key/value pair in the object */
     for (Token t = self->tCurr; t.type != TOK_RBRACE; t = JSONParserNext(self))
     {
-        /*if (i >= cap)*/
-        /*    pNode->tagVal.val.JSON_OBJECT.aNodes = realloc(pNode->tagVal.val.JSON_OBJECT.aNodes,*/
-        /*                                                   (cap *= 2) * sizeof(JSONNode));*/
-
         if (i >= cap)
             pNode->tagVal.val.JSON_OBJECT.aNodes = ArenaRealloc(self->pArena,
                                                                 pNode->tagVal.val.JSON_OBJECT.aNodes,
@@ -168,7 +162,6 @@ static void
 JSONParserParseArray(JSONParser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_ARRAY;
-    /*pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)calloc(4, sizeof(JSONTagVal));*/
     pNode->tagVal.val.JSON_ARRAY.aTagValues = (JSONTagVal*)ArenaAlloc(self->pArena, 4 * sizeof(JSONTagVal));
     pNode->tagVal.val.JSON_ARRAY.tagValueCount = 0;
     size_t cap = 4;
@@ -177,10 +170,6 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
     /* collect each key/value pair in the object */
     for (Token t = self->tCurr; t.type != TOK_RBRACKET; t = JSONParserNext(self))
     {
-        /*if (i >= cap)*/
-        /*    pNode->tagVal.val.JSON_ARRAY.aTagValues = realloc(pNode->tagVal.val.JSON_ARRAY.aTagValues,*/
-        /*                                                      (cap *= 2) * sizeof(JSONTagVal));*/
-
         if (i >= cap)
             pNode->tagVal.val.JSON_ARRAY.aTagValues = ArenaRealloc(self->pArena,
                                                                    pNode->tagVal.val.JSON_ARRAY.aTagValues,
@@ -212,7 +201,6 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
             case TOK_LBRACE:
                 t = JSONParserNext(self);
                 pNode->tagVal.val.JSON_ARRAY.aTagValues[i].tag = JSON_OBJECT;
-                /*pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = (JSONNode*)calloc(1, sizeof(JSONNode));*/
                 pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes = ArenaCalloc(self->pArena, 1, sizeof(JSONNode));
                 JSONParserParseObject(self, pNode->tagVal.val.JSON_ARRAY.aTagValues[i].val.JSON_OBJECT.aNodes);
                 break;
