@@ -10,7 +10,7 @@ main(int argc, char* argv[])
         exit(3);
     }
 
-    /* 1 megabyte should be more then enough */
+    /* make big blocks so it fits most of the stuff */
     Arena frameArena = ArenaCreate(ARENA_1M);
 
     JSONParser p = JSONParserCreate(&frameArena);
@@ -20,6 +20,6 @@ main(int argc, char* argv[])
     JSONParserParse(&p);
     JSONParserPrintJSON(&p);
 
-    /* just one free */
+    /* cleanup in one go */
     ArenaFree(&frameArena);
 }
