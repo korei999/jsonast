@@ -8,6 +8,8 @@
         exit(CODE);                                                                                                    \
     } while (0)
 
+
+static void JSONParserParseObject(JSONParser* self, JSONNode* pNode);
 static void JSONParserParseNode(JSONParser* self, JSONNode* pNode);
 static void JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode);
 static void JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode);
@@ -70,40 +72,6 @@ JSONParserLoadJSON(JSONParser* self, char* path)
     }
 }
 
-static void
-JSONParserCleanNode(JSONParser* self, JSONNode* pNode)
-{
-    switch (pNode->tagVal.tag)
-    {
-        default:
-            break;
-
-        case JSON_OBJECT:
-            {
-                struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
-                for (size_t i = 0; i < obj.nodeCount; i++)
-                    JSONParserCleanNode(self, &obj.aNodes[i]);
-                free(obj.aNodes);
-            }
-            break;
-
-        case JSON_ARRAY:
-            {
-                struct JSON_ARRAY arr = pNode->tagVal.val.JSON_ARRAY;
-                for (size_t i = 0; i < arr.tagValueCount; i++)
-                {
-                    if (arr.aTagValues[i].tag == JSON_OBJECT)
-                    {
-                        JSONParserCleanNode(self, arr.aTagValues[i].val.JSON_OBJECT.aNodes);
-                        free(arr.aTagValues[i].val.JSON_OBJECT.aNodes);
-                    }
-                }
-                free(arr.aTagValues);
-            }
-            break;
-    }
-}
-
 void
 JSONParserParse(JSONParser* self)
 {
@@ -119,7 +87,7 @@ JSONParserNext(JSONParser* self)
     return self->tCurr;
 }
 
-void
+static void
 JSONParserParseObject(JSONParser* self, JSONNode* pNode)
 {
     pNode->tagVal.tag = JSON_OBJECT;
