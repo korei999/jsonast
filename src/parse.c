@@ -197,7 +197,6 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
                 JSONParserParseNumber(self, &pNode->tagVal.val.JSON_ARRAY.aTagValues[i]);
                 break;
 
-
             case TOK_LBRACE:
                 t = JSONParserNext(self);
                 pNode->tagVal.val.JSON_ARRAY.aTagValues[i].tag = JSON_OBJECT;
