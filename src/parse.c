@@ -14,7 +14,7 @@ static void JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode);
 static void JSONParserParseBool(JSONParser* self, JSONTagVal* pNode);
 static void JSONParserParseNull(JSONParser* self, JSONTagVal* pNode);
 
-/* TODO: expects are not very useful rg */
+/* TODO: expects are not very useful rn */
 static void
 JSONParserExpect(JSONParser* self, enum JSONToken t)
 {
