@@ -27,8 +27,6 @@ typedef struct ArenaBlock
 typedef struct Arena
 {
     ArenaBlock* pBlocks;
-    void* pLastAllocatedBlock;
-    size_t lastAllocationSize;
     const size_t cap;
 } Arena;
 
@@ -49,6 +47,8 @@ ArenaBlockNew(size_t bytes)
     ArenaBlock* pNew = malloc(sizeof(ArenaBlock) + alignedSize);
     pNew->size = 0;
     pNew->pNext = nullptr;
+    pNew->pLastAllocation = nullptr;
+    pNew->lastAllocationSize = 0;
 
     return pNew;
 }
@@ -60,7 +60,6 @@ ArenaCreate(size_t bytes)
     Arena a = {.cap = alignedSize};
     ArenaBlock* pNew = ArenaBlockNew(alignedSize);
     a.pBlocks = pNew;
-    a.pLastAllocatedBlock = nullptr;
 
     return a;
 }
