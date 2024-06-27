@@ -6,9 +6,9 @@
 #include <string.h>
 
 #define ARENA_1K (1024UL)
-#define ARENA_4K (4UL * (size_t)ARENA_1K)
-#define ARENA_1M ((size_t)ARENA_1K * 1024UL)
-#define ARENA_1G ((size_t)ARENA_1M * 1024UL)
+#define ARENA_4K (ARENA_1K * 4UL)
+#define ARENA_1M (ARENA_1K * 1024UL)
+#define ARENA_1G (ARENA_1M * 1024UL)
 
 #define ARENA_FIRST(A) ((A)->pFirst)
 #define ARENA_NEXT(AB) ((AB)->pNext)
