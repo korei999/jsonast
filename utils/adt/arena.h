@@ -156,5 +156,8 @@ static inline void
 ArenaReset(Arena* a)
 {
     ARENA_FOREACH(a, pBlock)
-        pBlock->size = 0;
+    {
+        pBlock->lastAllocationSize = pBlock->size = 0;
+        pBlock->pLastAllocation = nullptr;
+    }
 }
