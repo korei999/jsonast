@@ -11,15 +11,16 @@ main(int argc, char* argv[])
     }
 
     /* make big blocks so it fits most of the stuff */
-    Arena frameArena = ArenaCreate(ARENA_1M);
+    Arena arena = ArenaCreate(ARENA_1M);
 
-    JSONParser p = JSONParserCreate(&frameArena);
+    JSONParser p = JSONParserCreate(&arena);
 
     JSONParserLoadJSON(&p, argv[1]);
 
     JSONParserParse(&p);
-    JSONParserPrintJSON(&p);
+    JSONParserPrint(&p);
+    COUT("\n");
 
     /* cleanup in one go */
-    ArenaFree(&frameArena);
+    ArenaFree(&arena);
 }

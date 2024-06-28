@@ -1,6 +1,10 @@
 #pragma once
 #include "common.h"
 
+#ifndef NDEBUG
+#include "logs.h"
+#endif
+
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
@@ -78,7 +82,10 @@ ArenaAlloc(Arena* a, size_t bytes)
 {
     size_t alignedSize = ArenaAlignedSize(bytes);
 
-    assert(alignedSize < a->cap && "trying to allocate more than 1 arena block");
+#ifndef NDEBUG
+    if (alignedSize > a->cap)
+        LOG_FATAL("ArenaAlloc: trying to allocate more than 1 block, asked for: {}, cap: {}\n", alignedSize, a->cap);
+#endif
 
     void* pRetBlock = nullptr;
     ArenaBlock* pLast = nullptr;

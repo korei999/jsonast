@@ -44,6 +44,8 @@ struct JSONTagVal
     union JSONVal val;
 };
 
+/* JSONNode is a KEY/VALUE pair
+ * value is called TagValue because it's tagged union */
 struct JSONNode
 {
     SliceStr slKey;

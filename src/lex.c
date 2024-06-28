@@ -150,8 +150,8 @@ LexString(Lex* self)
     }
 
     r.type = TOK_IDENT;
-    r.slLiteral.data = &pData[start];
-    r.slLiteral.size = (i - start) + 1;
+    r.slLiteral.data = &pData[start + 1]; /* +1 skip first quote */
+    r.slLiteral.size = (i - start) - 1; /* -1 skip last quote */
 
     self->pos = i;
     return r;

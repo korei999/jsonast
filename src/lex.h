@@ -1,5 +1,6 @@
 #pragma once
 #include "ast.h"
+#include "misc.h"
 
 #define LEX_ERR(CODE, ...)                                                                                             \
     do                                                                                                                 \
@@ -29,20 +30,20 @@ enum JSONToken
 };
 
 [[maybe_unused]] static const SliceStr tokenStrings[] = {
-    [TOK_LBRACE]    = SLSTR_NEW_LIT("TOK_LBRACE"),
-    [TOK_RBRACE]    = SLSTR_NEW_LIT("TOK_RBRACE"),
-    [TOK_LBRACKET]  = SLSTR_NEW_LIT("TOK_LBRACKET"),
-    [TOK_RBRACKET]  = SLSTR_NEW_LIT("TOK_RBRACKET"),
-    [TOK_QUOTE]     = SLSTR_NEW_LIT("TOK_QUOTE"),
-    [TOK_IDENT]     = SLSTR_NEW_LIT("TOK_IDENT"),
-    [TOK_NUMBER]    = SLSTR_NEW_LIT("TOK_NUMBER"),
-    [TOK_TRUE]      = SLSTR_NEW_LIT("TOK_TRUE"),
-    [TOK_FALSE]     = SLSTR_NEW_LIT("TOK_FALSE"),
-    [TOK_ASSIGN]    = SLSTR_NEW_LIT("TOK_ASSIGN"),
-    [TOK_COMMA]     = SLSTR_NEW_LIT("TOK_COMMA"),
-    [TOK_DOT]       = SLSTR_NEW_LIT("TOK_DOT"),
-    [TOK_UNHANDLED] = SLSTR_NEW_LIT("TOK_UNHANDLED"),
-    [TOK_EOF]       = SLSTR_NEW_LIT("TOK_EOF"),
+    [TOK_LBRACE]    = SLSTR("TOK_LBRACE"),
+    [TOK_RBRACE]    = SLSTR("TOK_RBRACE"),
+    [TOK_LBRACKET]  = SLSTR("TOK_LBRACKET"),
+    [TOK_RBRACKET]  = SLSTR("TOK_RBRACKET"),
+    [TOK_QUOTE]     = SLSTR("TOK_QUOTE"),
+    [TOK_IDENT]     = SLSTR("TOK_IDENT"),
+    [TOK_NUMBER]    = SLSTR("TOK_NUMBER"),
+    [TOK_TRUE]      = SLSTR("TOK_TRUE"),
+    [TOK_FALSE]     = SLSTR("TOK_FALSE"),
+    [TOK_ASSIGN]    = SLSTR("TOK_ASSIGN"),
+    [TOK_COMMA]     = SLSTR("TOK_COMMA"),
+    [TOK_DOT]       = SLSTR("TOK_DOT"),
+    [TOK_UNHANDLED] = SLSTR("TOK_UNHANDLED"),
+    [TOK_EOF]       = SLSTR("TOK_EOF"),
 };
 
 typedef struct Token Token;

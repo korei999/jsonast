@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "arena.h"
 
 #define ADT_HASHMAP_DEFAULT_LOAD_FACTOR 0.5
 
@@ -17,6 +17,7 @@
         NAME##Bucket* pBuckets;                                                                                        \
         size_t bucketCount;                                                                                            \
         size_t capacity;                                                                                               \
+        Arena* pArena;                                                                                                 \
     } NAME;                                                                                                            \
                                                                                                                        \
     typedef struct NAME##ReturnNode                                                                                    \
@@ -29,16 +30,13 @@
                                                                                                                        \
     [[maybe_unused]] static inline NAME##ReturnNode NAME##Insert(NAME* self, T data);                                  \
                                                                                                                        \
-    [[maybe_unused]] static inline NAME NAME##Create(size_t cap)                                                       \
+    [[maybe_unused]] static inline NAME NAME##Create(Arena* a, size_t cap)                                             \
     {                                                                                                                  \
         assert(cap > 0 && "cap should be > 0");                                                                        \
-        return (NAME) {                                                                                                \
-            .pBuckets = (NAME##Bucket*)calloc(cap, sizeof(NAME##Bucket)), .bucketCount = 0, .capacity = cap};          \
-    }                                                                                                                  \
+        NAME mapNew = {.bucketCount = 0, .capacity = cap, .pArena = a};                                                \
+        mapNew.pBuckets = ArenaCalloc(a, cap, sizeof(NAME##Bucket));                                                   \
                                                                                                                        \
-    [[maybe_unused]] static inline void NAME##Clean(NAME* self)                                                        \
-    {                                                                                                                  \
-        free(self->pBuckets);                                                                                          \
+        return mapNew;                                                                                                 \
     }                                                                                                                  \
                                                                                                                        \
     [[maybe_unused]] static inline double NAME##LoadFactor(NAME* self)                                                 \
@@ -48,13 +46,12 @@
                                                                                                                        \
     [[maybe_unused]] static inline void NAME##Rehash(NAME* self, size_t cap)                                           \
     {                                                                                                                  \
-        NAME mapNew = NAME##Create(cap);                                                                               \
+        NAME mapNew = NAME##Create(self->pArena, cap);                                                                 \
                                                                                                                        \
         for (size_t i = 0; i < self->capacity; i++)                                                                    \
             if (self->pBuckets[i].bOccupied)                                                                           \
                 NAME##Insert(&mapNew, self->pBuckets[i].data);                                                         \
                                                                                                                        \
-        NAME##Clean(self);                                                                                             \
         *self = mapNew;                                                                                                \
     }                                                                                                                  \
                                                                                                                        \

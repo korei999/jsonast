@@ -17,4 +17,5 @@ struct JSONParser
 JSONParser JSONParserCreate(Arena* a);
 void JSONParserLoadJSON(JSONParser* self, char* path);
 void JSONParserParse(JSONParser* self);
-void JSONParserPrintJSON(JSONParser* self);
+void JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding);
+void JSONParserPrint(JSONParser* self);

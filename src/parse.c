@@ -11,10 +11,10 @@
 
 static void JSONParserParseObject(JSONParser* self, JSONNode* pNode);
 static void JSONParserParseNode(JSONParser* self, JSONNode* pNode);
-static void JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode);
-static void JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode);
-static void JSONParserParseBool(JSONParser* self, JSONTagVal* pNode);
-static void JSONParserParseNull(JSONParser* self, JSONTagVal* pNode);
+static void JSONParserParseNumber(JSONParser* self, JSONTagVal* pTagVal);
+static void JSONParserParseIdent(JSONParser* self, JSONTagVal* pTagVal);
+static void JSONParserParseBool(JSONParser* self, JSONTagVal* pTagVal);
+static void JSONParserParseNull(JSONParser* self, JSONTagVal* pTagVal);
 
 /* TODO: expects are not very useful rn */
 static void
@@ -23,13 +23,6 @@ JSONParserExpect(JSONParser* self, enum JSONToken t)
     if (self->tCurr.type != t)
         PARSER_ERR(2, "next expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tCurr.type]);
 }
-
-/*static void*/
-/*ParserExpectNext(JSONParser* self, enum JSONToken t)*/
-/*{*/
-/*    if (self->tNext.type != t)*/
-/*        PARSER_ERR(2, "curr expected: '{}', got '{}' instead\n", tokenStrings[t], tokenStrings[self->tNext.type]);*/
-/*}*/
 
 JSONParser
 JSONParserCreate(Arena* a)
@@ -186,7 +179,7 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
 }
 
 static void
-JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode)
+JSONParserParseNumber(JSONParser* self, JSONTagVal* pTagVal)
 {
     char buff[255] = {0};
     bool bReal = false;
@@ -197,32 +190,32 @@ JSONParserParseNumber(JSONParser* self, JSONTagVal* pNode)
 
     }
     if (bReal)
-        *pNode = JSON_NEW_TAGVAL(JSON_FLOAT, atof(buff));
+        *pTagVal = JSON_NEW_TAGVAL(JSON_FLOAT, atof(buff));
     else
-        *pNode = JSON_NEW_TAGVAL(JSON_INT, atoll(buff));
+        *pTagVal = JSON_NEW_TAGVAL(JSON_INT, atoll(buff));
 
     JSONParserNext(self);
 }
 
 static void
-JSONParserParseIdent(JSONParser* self, JSONTagVal* pNode)
+JSONParserParseIdent(JSONParser* self, JSONTagVal* pTagVal)
 {
-    *pNode = JSON_NEW_TAGVAL(JSON_STRING, self->tCurr.slLiteral);
+    *pTagVal = JSON_NEW_TAGVAL(JSON_STRING, self->tCurr.slLiteral);
     JSONParserNext(self);
 }
 
 static void
-JSONParserParseBool(JSONParser* self, JSONTagVal* pNode)
+JSONParserParseBool(JSONParser* self, JSONTagVal* pTagVal)
 {
     bool b = self->tCurr.type == TOK_TRUE ? true : false;
-    *pNode = JSON_NEW_TAGVAL(JSON_BOOL, b);
+    *pTagVal = JSON_NEW_TAGVAL(JSON_BOOL, b);
     JSONParserNext(self);
 }
 
 static void
-JSONParserParseNull(JSONParser* self, JSONTagVal* pNode)
+JSONParserParseNull(JSONParser* self, JSONTagVal* pTagVal)
 {
-    *pNode = JSON_NEW_TAGVAL(JSON_NULL, NULL);
+    *pTagVal = JSON_NEW_TAGVAL(JSON_NULL, NULL);
     JSONParserNext(self);
 }
 
@@ -264,7 +257,7 @@ JSONParserParseNode(JSONParser* self, JSONNode* pNode)
     }
 }
 
-static void
+void
 JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
 {
     SliceStr key = pNode->slKey;
@@ -277,13 +270,23 @@ JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
         case JSON_OBJECT:
             {
                 struct JSON_OBJECT obj = pNode->tagVal.val.JSON_OBJECT;
-                SliceStr objName0 = key.size == 0 ? SLSTR_NEW_LIT("") : key;
-                SliceStr objName1 = objName0.size > 0 ? SLSTR_NEW_LIT(": ") : SLSTR_NEW_LIT("");
+                SliceStr q0, q1, objName0, objName1;
 
-                COUT("{}{}{\n", objName0, objName1);
+                if (key.size == 0)
+                {
+                    q0 = q1 = objName1 = objName0 = SLSTR("");
+                }
+                else
+                {
+                    objName0 = key;
+                    objName1 = SLSTR(": ");
+                    q1 = q0 = SLSTR("\"");
+                }
+
+                COUT("{}{}{}{}{\n", q0, objName0, q1, objName1);
                 for (size_t i = 0; i < obj.nodeCount; i++)
                 {
-                    SliceStr slE = (i == obj.nodeCount - 1) ? SLSTR_NEW_LIT("\n") : SLSTR_NEW_LIT(",\n");
+                    SliceStr slE = (i == obj.nodeCount - 1) ? SLSTR("\n") : SLSTR(",\n");
                     JSONParserPrintNode(self, &obj.aNodes[i], slE);
                 }
                 COUT("}{}", slEnding);
@@ -293,13 +296,23 @@ JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
         case JSON_ARRAY:
             {
                 struct JSON_ARRAY arr = pNode->tagVal.val.JSON_ARRAY;
-                SliceStr arrName0 = key.size == 0 ? SLSTR_NEW_LIT("") : key;
-                SliceStr arrName1 = arrName0.size > 0 ? SLSTR_NEW_LIT(": ") : SLSTR_NEW_LIT("");
+                SliceStr q0, q1, arrName0, arrName1;
 
-                COUT("{}{}[\n", arrName0, arrName1);
+                if (key.size == 0)
+                {
+                    q0 =  q1 = arrName1 = arrName0 = SLSTR("");
+                }
+                else
+                {
+                    arrName0 = key;
+                    arrName1 = SLSTR(": ");
+                    q1 = q0 = SLSTR("\"");
+                }
+
+                COUT("{}{}{}{}[\n", q0, arrName0, q1, arrName1);
                 for (size_t i = 0; i < arr.tagValueCount; i++)
                 {
-                    SliceStr slE = (i == arr.tagValueCount - 1) ? SLSTR_NEW_LIT("\n") : SLSTR_NEW_LIT(",\n");
+                    SliceStr slE = (i == arr.tagValueCount - 1) ? SLSTR("\n") : SLSTR(",\n");
 
                     switch (arr.aTagValues[i].tag)
                     {
@@ -307,7 +320,7 @@ JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
                         case JSON_STRING:
                             {
                                 SliceStr sl = arr.aTagValues[i].val.JSON_STRING.sl;
-                                COUT("{}{}", sl, slE);
+                                COUT("\"{}\"{}", sl, slE);
                             }
                             break;
 
@@ -349,40 +362,40 @@ JSONParserPrintNode(JSONParser* self, JSONNode* pNode, SliceStr slEnding)
             {
                 /* TODO: add some sort formatting for floats */
                 double f = pNode->tagVal.val.JSON_FLOAT.f;
-                COUT("{}: {}{}", key, f, slEnding);
+                COUT("\"{}\": {}{}", key, f, slEnding);
             }
             break;
 
         case JSON_INT:
             {
                 int i = pNode->tagVal.val.JSON_INT.i;
-                COUT("{}: {}{}", key, i, slEnding);
+                COUT("\"{}\": {}{}", key, i, slEnding);
             }
             break;
 
         case JSON_NULL:
-                COUT("{}: {}{}", key, "null", slEnding);
+                COUT("\"{}\": {}{}", key, "null", slEnding);
             break;
 
         case JSON_STRING:
             {
                 SliceStr sl = pNode->tagVal.val.JSON_STRING.sl;
-                COUT("{}: {}{}", key, sl, slEnding);
+                COUT("\"{}\": \"{}\"{}", key, sl, slEnding);
             }
             break;
 
         case JSON_BOOL:
             {
                 bool b = pNode->tagVal.val.JSON_BOOL.b;
-                COUT("{}: {}{}", key, b, slEnding);
+                COUT("\"{}\": {}{}", key, b, slEnding);
             }
             break;
     }
 }
 
 void
-JSONParserPrintJSON(JSONParser* self)
+JSONParserPrint(JSONParser* self)
 {
-    JSONParserPrintNode(self, self->pHead, SLSTR_NEW_LIT(""));
+    JSONParserPrintNode(self, self->pHead, SLSTR(""));
     COUT("\n");
 }
