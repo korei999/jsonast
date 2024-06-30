@@ -26,12 +26,6 @@ LexLoadFile(Lex* self, char* path)
 }
 
 void
-LexClean(Lex* self)
-{
-    free(self->slData.data);
-}
-
-void
 LexSkipWhiteSpace(Lex* self)
 {
     size_t i = self->pos;
@@ -137,13 +131,35 @@ LexString(Lex* self)
     char* pData = self->slData.data;
     size_t start = self->pos;
     size_t i = start + 1;
+    bool bEsc = false;
+    bool bDone = false;
 
-    while (pData[i] != '"')
+    while (pData[i] && !bDone)
     {
-        if (pData[i] == TOK_EOF)
-            LEX_ERR(1, "Unterminated string\n");
-        else if (pData[i] == '\n')
-            LEX_ERR(1, "Next line within strings are not allowed\n");
+        switch (pData[i])
+        {
+            default:
+                if (bEsc)
+                    bEsc = false;
+                break;
+
+            case TOK_EOF:
+                LEX_ERR(1, "Unterminated string\n");
+
+            case '\n':
+                LEX_ERR(1, "Next lines within strings are not allowed\n");
+
+            case '\\':
+                bEsc = !bEsc;
+                break;
+
+            case '"':
+                if (!bEsc)
+                    bDone = true;
+                else
+                    bEsc = false;
+                break;
+        }
 
         /*self->column++;*/
         i++;
@@ -151,9 +167,9 @@ LexString(Lex* self)
 
     r.type = TOK_IDENT;
     r.slLiteral.data = &pData[start + 1]; /* +1 skip first quote */
-    r.slLiteral.size = (i - start) - 1; /* -1 skip last quote */
+    r.slLiteral.size = (i - start) - 2; /* -1 skip last quote */
 
-    self->pos = i;
+    self->pos = i - 1;
     return r;
 }
 

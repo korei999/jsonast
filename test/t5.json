@@ -1,0 +1,16 @@
+{
+  "payload": {
+    "action": "opened",
+    "issue": {
+      "url": "https://api.github.com/repos/sheimi/SGit/issues/131",
+      "title": "Directly delete a repository from Android/data/me.scheimi/files/repo but that repository still shows in the user interface of SGit",
+      "user": {
+        "login": "s3408669",
+        "site_admin": false
+      },
+      "labels": [],
+      "body": "Steps to reproduce:\r\n- Go to Android\r\n\"Repositoy not found)."
+    }
+  },
+  "public": true
+}

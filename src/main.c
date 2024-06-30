@@ -11,7 +11,7 @@ main(int argc, char* argv[])
     }
 
     /* make big blocks so it fits most of the stuff */
-    Arena arena = ArenaCreate(ARENA_1M);
+    Arena arena = ArenaCreate(ARENA_1M * 200);
 
     JSONParser p = JSONParserCreate(&arena);
 

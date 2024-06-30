@@ -69,7 +69,6 @@ struct Lex
 Lex LexCreate(Arena* a);
 void LexError(Lex* self);
 void LexLoadFile(Lex* self, char* path);
-void LexClean(Lex* self);
 void LexSkipWhiteSpace(Lex* self);
 Token LexNext(Lex* self);
 Token LexString(Lex* self);

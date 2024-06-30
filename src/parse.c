@@ -3,7 +3,7 @@
 #define PARSER_ERR(CODE, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        CERR("parser error: {}, {}: ", self->tCurr.slLiteral, self->tNext.slLiteral);                                  \
+        CERR("parser error ('{}', '{}'): ", self->tCurr.slLiteral, self->tNext.slLiteral);                                  \
         CERR(__VA_ARGS__);                                                                                             \
         exit(CODE);                                                                                                    \
     } while (0)
@@ -116,6 +116,9 @@ JSONParserParseObject(JSONParser* self, JSONNode* pNode)
         }
     }
 
+    /*if (self->tCurr.type == TOK_RBRACE)*/
+    /*    JSONParserNext(self);*/
+
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
 }
 
@@ -174,6 +177,9 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
             break;
         }
     }
+
+    if (self->tCurr.type == TOK_RBRACKET)
+        JSONParserNext(self);
 
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
 }
