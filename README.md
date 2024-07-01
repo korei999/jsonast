@@ -1,4 +1,4 @@
-`> jsonast ~/source/glTF-Sample-Assets/Models/Sponza/metadata.json | jq`
+`> jsonast ~/source/glTF-Sample-Assets/Models/Sponza/metadata.json -p | jq`
 ```json
 {
   "version": 2,
