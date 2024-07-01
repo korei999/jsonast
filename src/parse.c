@@ -116,8 +116,8 @@ JSONParserParseObject(JSONParser* self, JSONNode* pNode)
         }
     }
 
-    /*if (self->tCurr.type == TOK_RBRACE)*/
-    /*    JSONParserNext(self);*/
+    if (i == 0)
+        JSONParserNext(self);
 
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;
 }
@@ -178,7 +178,7 @@ JSONParserParseArray(JSONParser* self, JSONNode* pNode)
         }
     }
 
-    if (self->tCurr.type == TOK_RBRACKET)
+    if (i == 0)
         JSONParserNext(self);
 
     pNode->tagVal.val.JSON_OBJECT.nodeCount = i;

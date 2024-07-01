@@ -132,9 +132,8 @@ LexString(Lex* self)
     size_t start = self->pos;
     size_t i = start + 1;
     bool bEsc = false;
-    bool bDone = false;
 
-    while (pData[i] && !bDone)
+    while (pData[i])
     {
         switch (pData[i])
         {
@@ -155,7 +154,7 @@ LexString(Lex* self)
 
             case '"':
                 if (!bEsc)
-                    bDone = true;
+                    goto done;
                 else
                     bEsc = false;
                 break;
@@ -165,11 +164,13 @@ LexString(Lex* self)
         i++;
     }
 
+done:
+
     r.type = TOK_IDENT;
     r.slLiteral.data = &pData[start + 1]; /* +1 skip first quote */
-    r.slLiteral.size = (i - start) - 2; /* -1 skip last quote */
+    r.slLiteral.size = (i - start) - 1; /* -1 skip last quote */
 
-    self->pos = i - 1;
+    self->pos = i;
     return r;
 }
 
