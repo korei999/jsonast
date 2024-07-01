@@ -3,7 +3,7 @@
 int
 main(int argc, char* argv[])
 {
-    if (argc != 2)
+    if (argc < 2)
     {
         printf("jsonast version: %.1lf\n\n", JSONAST_VERSION);
         COUT("usage: {} <path to json>\n", argv[0]);
@@ -18,8 +18,9 @@ main(int argc, char* argv[])
     JSONParserLoadJSON(&p, argv[1]);
 
     JSONParserParse(&p);
-    JSONParserPrint(&p);
-    COUT("\n");
+
+    if (argc >= 3 && strcmp(argv[2], "-p") == 0)
+        JSONParserPrint(&p);
 
     /* cleanup in one go */
     ArenaFree(&arena);
